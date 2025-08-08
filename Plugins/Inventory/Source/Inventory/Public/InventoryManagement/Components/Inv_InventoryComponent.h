@@ -17,6 +17,8 @@ class INVENTORY_API UInv_InventoryComponent : public UActorComponent
 public:
 	UInv_InventoryComponent();
 
+	void ToggleInventoryMenu();
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -31,4 +33,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	TSubclassOf<UInv_InventoryBase> InventoryMenuClass;
+
+	bool bIsInventoryMenuOpen = false;
+
+	void OpenInventoryMenu();
+	void CloseInventoryMenu();
 };
