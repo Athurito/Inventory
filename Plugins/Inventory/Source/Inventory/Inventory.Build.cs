@@ -26,7 +26,8 @@ public class Inventory : ModuleRules
 			new string[]
 			{
 				"Core", 
-				"NetCore"
+				"NetCore",
+				"GameplayTags"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -38,7 +39,7 @@ public class Inventory : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"Slate",
-				"SlateCore", "EnhancedInput", "CommonUI", "UMG"
+				"SlateCore", "EnhancedInput", "CommonUI", "UMG",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

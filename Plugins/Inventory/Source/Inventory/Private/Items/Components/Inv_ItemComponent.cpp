@@ -10,6 +10,7 @@ UInv_ItemComponent::UInv_ItemComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	PickupMessage = "E - Pickup";
+	SetIsReplicatedByDefault(true);
 }
 
 void UInv_ItemComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
