@@ -26,7 +26,24 @@ void UInv_InventoryComponent::TryAddItem(UInv_ItemComponent* ItemComponent)
 		return;
 	}
 
-	//TODO add item
+	if (Result.Item.IsValid() && Result.bStackable)
+	{
+		Server_AddStacksToItem(ItemComponent, Result.TotalRoomToFill, Result.Remainder);
+	}
+	else if (Result.TotalRoomToFill > 0)
+	{
+		Server_AddNewItem(ItemComponent, Result.bStackable ? Result.TotalRoomToFill : 0);
+	}
+}
+
+void UInv_InventoryComponent::Server_AddNewItem_Implementation(UInv_ItemComponent* ItemComponent, int32 StackCount)
+{
+	
+}
+
+void UInv_InventoryComponent::Server_AddStacksToItem_Implementation(UInv_ItemComponent* ItemComponent, int32 StackCount, int32 Remainder)
+{
+	
 }
 
 void UInv_InventoryComponent::ToggleInventoryMenu()
