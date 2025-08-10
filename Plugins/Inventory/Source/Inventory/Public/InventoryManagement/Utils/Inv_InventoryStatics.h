@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "Types/Inv_GridTypes.h"
 #include "Inv_InventoryStatics.generated.h"
 
+class UInv_ItemComponent;
 class UInv_InventoryComponent;
 /**
  * 
@@ -19,4 +21,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	static UInv_InventoryComponent* GetInventoryComponent(const APlayerController* PlayerController);
+
+	static EInv_ItemCategory GetItemCategoryFromItemComponent(const UInv_ItemComponent* ItemComponent);
 };
