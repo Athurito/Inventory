@@ -35,6 +35,9 @@ private:
 
 	FInv_SlotAvailabilityResult HasRoomForItem(const UInv_InventoryItem* InventoryItem) const;
 	FInv_SlotAvailabilityResult HasRoomForItem(const FInv_ItemManifest& Manifest) const;
+
+	void AddItemToIndices(const FInv_SlotAvailabilityResult& Result, UInv_InventoryItem* Item);
+
 	TWeakObjectPtr<UInv_InventoryComponent> InventoryComponent;
 
 	

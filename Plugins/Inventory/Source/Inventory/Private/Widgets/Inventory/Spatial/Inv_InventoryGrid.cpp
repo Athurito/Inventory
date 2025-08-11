@@ -37,6 +37,12 @@ FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const FInv_ItemMa
 {
 	FInv_SlotAvailabilityResult Result;
 	Result.TotalRoomToFill = 1;
+
+	FInv_SlotAvailability SlotAvailability;
+	SlotAvailability.AmountToFill = 1;
+	SlotAvailability.Index = 0;
+
+	Result.SlotAvailabilities.Add(MoveTemp(SlotAvailability));
 	return Result;
 }
 
@@ -46,7 +52,11 @@ void UInv_InventoryGrid::AddItem(UInv_InventoryItem* Item)
 	
 	FInv_SlotAvailabilityResult Result = HasRoomForItem(Item);
 
-	//
+	AddItemToIndices(Result, Item);
+}
+
+void UInv_InventoryGrid::AddItemToIndices(const FInv_SlotAvailabilityResult& Result, UInv_InventoryItem* Item)
+{
 	
 }
 
