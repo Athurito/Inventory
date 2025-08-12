@@ -111,8 +111,17 @@ void UInv_InventoryGrid::AddSlottedItemToCanvas(const int32 Index, const FInv_Gr
 void UInv_InventoryGrid::UpdateGridSlots(UInv_InventoryItem* Item, const int32 Index)
 {
 	check(GridSlots.IsValidIndex(Index));
-	UInv_GridSlot* GridSlot = GridSlots[Index];
-	GridSlot->SetOccupiedTexture();
+
+	const FInv_GridFragment* GridFragment = GetFragment<FInv_GridFragment>(Item, FragmentTags::GridFragment);
+
+	if (!GridFragment) return;
+
+	const FIntPoint Dimensions = GridFragment->GetGridSize();
+
+	UInv_InventoryStatics::ForEach2D(GridSlots, Index,Dimensions, Columns, [](UInv_GridSlot* GridSlot)
+	{
+		GridSlot->SetOccupiedTexture();
+	});
 }
 
 FVector2D UInv_InventoryGrid::GetDrawSize(const FInv_GridFragment* GridFragment) const
