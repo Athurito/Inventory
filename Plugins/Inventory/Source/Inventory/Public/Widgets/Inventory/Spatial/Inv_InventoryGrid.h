@@ -27,7 +27,7 @@ public:
 	virtual void NativeOnInitialized() override;
 	EInv_ItemCategory GetItemCategory() const { return ItemCategory; }
 
-	FInv_SlotAvailabilityResult HasRoomForItem(const UInv_ItemComponent* ItemComponent) const;
+	FInv_SlotAvailabilityResult HasRoomForItem(const UInv_ItemComponent* ItemComponent);
 	
 	UFUNCTION()
 	void AddItem(UInv_InventoryItem* Item);
@@ -37,8 +37,8 @@ private:
 	TWeakObjectPtr<UInv_InventoryComponent> InventoryComponent;
 	
 	void ConstructGrid();
-	FInv_SlotAvailabilityResult HasRoomForItem(const UInv_InventoryItem* InventoryItem) const;
-	FInv_SlotAvailabilityResult HasRoomForItem(const FInv_ItemManifest& Manifest) const;
+	FInv_SlotAvailabilityResult HasRoomForItem(const UInv_InventoryItem* InventoryItem);
+	FInv_SlotAvailabilityResult HasRoomForItem(const FInv_ItemManifest& Manifest);
 	void AddItemToIndices(const FInv_SlotAvailabilityResult& Result, UInv_InventoryItem* Item);
 	bool MatchesCategory(const UInv_InventoryItem* Item) const;
 	FVector2D GetDrawSize(const FInv_GridFragment* GridFragment) const;
