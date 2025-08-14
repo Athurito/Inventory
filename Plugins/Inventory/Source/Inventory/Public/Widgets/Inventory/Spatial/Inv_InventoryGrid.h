@@ -7,6 +7,7 @@
 #include "Types/Inv_GridTypes.h"
 #include "Inv_InventoryGrid.generated.h"
 
+struct FGameplayTag;
 struct FInv_ImageFragment;
 struct FInv_GridFragment;
 class UInv_SlottedItem;
@@ -56,11 +57,17 @@ private:
 	bool HasRoomAtIndex(const UInv_GridSlot* GridSlot,
 		const FIntPoint& Dimensions,
 		const TSet<int32>& ClaimedIndices,
-		TSet<int32>& OutTentativelyClaimed);
+		TSet<int32>& OutTentativelyClaimed,
+		const FGameplayTag& ItemType);
 	FIntPoint GetItemDimensions(const FInv_ItemManifest& Manifest) const;
-	bool CheckSlotConstraints(const UInv_GridSlot* GridSlot, const UInv_GridSlot* SubGridSlot, const TSet<int32>& ClaimedIndices, TSet<int32>& OutTentativelyClaimed) const;
+	bool CheckSlotConstraints(const UInv_GridSlot* GridSlot,
+		const UInv_GridSlot* SubGridSlot,
+		const TSet<int32>& ClaimedIndices,
+		TSet<int32>& OutTentativelyClaimed,
+		const FGameplayTag& ItemType) const;
 	bool HasValidItem(const UInv_GridSlot* GridSlot) const;
 	bool IsUpperLeftSLot(const UInv_GridSlot* GridSlot, const UInv_GridSlot* SubGridSlot) const;
+	bool DoesItemTypeMatch(const UInv_InventoryItem* SubItem, const FGameplayTag& ItemType) const;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "Inventory")
 	EInv_ItemCategory ItemCategory;
