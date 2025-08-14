@@ -86,7 +86,7 @@ bool UInv_InventoryGrid::HasRoomAtIndex(const UInv_GridSlot* GridSlot, const FIn
 	bool bHasRoomAtIndex = true;
 	UInv_InventoryStatics::ForEach2D(GridSlots, GridSlot->GetTileIndex(), Dimensions, Columns, [&](const UInv_GridSlot* SubGridSlot)
 	{
-		if (CheckSlotConstraints(SubGridSlot, ClaimedIndices, OutTentativelyClaimed))
+		if (CheckSlotConstraints(GridSlot, SubGridSlot, ClaimedIndices, OutTentativelyClaimed))
 		{
 			OutTentativelyClaimed.Add(SubGridSlot->GetTileIndex());
 		}
@@ -105,7 +105,7 @@ FIntPoint UInv_InventoryGrid::GetItemDimensions(const FInv_ItemManifest& Manifes
 	return Dimensions;
 }
 
-bool UInv_InventoryGrid::CheckSlotConstraints(const UInv_GridSlot* SubGridSlot, const TSet<int32>& ClaimedIndices, TSet<int32>& OutTentativelyClaimed) const
+bool UInv_InventoryGrid::CheckSlotConstraints(const UInv_GridSlot* GridSlot, const UInv_GridSlot* SubGridSlot, const TSet<int32>& ClaimedIndices, TSet<int32>& OutTentativelyClaimed) const
 {
 
 	// Index claimed?
@@ -119,6 +119,8 @@ bool UInv_InventoryGrid::CheckSlotConstraints(const UInv_GridSlot* SubGridSlot, 
 		OutTentativelyClaimed.Add(SubGridSlot->GetTileIndex());
 		return true;
 	}
+	// Is this Grid Slot an upper left slot
+	if (!IsUpperLeftSLot(GridSlot, SubGridSlot)) return false;
 	// Is this item the same type as the item we're trying to add?
 	// If so, is this a stackable item?
 	// If stackable, is this slot at the max stack size already?
@@ -128,6 +130,11 @@ bool UInv_InventoryGrid::CheckSlotConstraints(const UInv_GridSlot* SubGridSlot, 
 bool UInv_InventoryGrid::HasValidItem(const UInv_GridSlot* GridSlot) const
 {
 	return GridSlot->GetInventoryItem().IsValid();
+}
+
+bool UInv_InventoryGrid::IsUpperLeftSLot(const UInv_GridSlot* GridSlot, const UInv_GridSlot* SubGridSlot) const
+{
+	return SubGridSlot->GetUpperLeftIndex() == GridSlot->GetTileIndex();
 }
 
 void UInv_InventoryGrid::AddItem(UInv_InventoryItem* Item)
