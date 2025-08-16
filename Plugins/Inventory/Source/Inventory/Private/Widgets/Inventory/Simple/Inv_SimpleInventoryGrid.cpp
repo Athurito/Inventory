@@ -30,6 +30,12 @@ FInv_SlotAvailabilityResult UInv_SimpleInventoryGrid::HasRoomForItem(const UInv_
 	FInv_SlotAvailabilityResult Result;
 	if (!IsValid(ItemComponent)) return Result;
 
+	// Only consider items matching this grid's category
+	if (UInv_InventoryStatics::GetItemCategoryFromItemComponent(ItemComponent) != ItemCategory)
+	{
+		return Result;
+	}
+
 	const FInv_StackableFragment* StackableFragment = ItemComponent->GetItemManifest().GetFragmentOfType<FInv_StackableFragment>();
 	Result.bStackable = StackableFragment != nullptr;
 	const int32 MaxStackSize = StackableFragment ? StackableFragment->GetMaxStackSize() : 1;
@@ -74,6 +80,9 @@ FInv_SlotAvailabilityResult UInv_SimpleInventoryGrid::HasRoomForItem(const UInv_
 void UInv_SimpleInventoryGrid::OnItemAdded(UInv_InventoryItem* Item)
 {
 	if (!IsValid(Item)) return;
+
+	// Ignore items that don't belong to this grid's category
+	if (Item->GetItemManifest().GetItemCategory() != ItemCategory) return;
 
 	const FInv_StackableFragment* Stackable = Item->GetItemManifest().GetFragmentOfType<FInv_StackableFragment>();
 	const bool bStackable = Stackable != nullptr;

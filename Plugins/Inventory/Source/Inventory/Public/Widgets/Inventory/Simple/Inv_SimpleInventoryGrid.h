@@ -24,6 +24,8 @@ public:
 
 	FInv_SlotAvailabilityResult HasRoomForItem(const UInv_ItemComponent* ItemComponent) const;
 
+	EInv_ItemCategory GetItemCategory() const { return ItemCategory; }
+
 private:
 	UFUNCTION()
 	void OnItemAdded(UInv_InventoryItem* Item);
@@ -35,6 +37,10 @@ private:
 	void SetSlottedItemImage(const UInv_SlottedItem* SlottedItem, UTexture2D* Icon, const FVector2D& DrawSize) const;
 
 private:
+	// Category for this grid (set in UMG BP)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "Inventory")
+	EInv_ItemCategory ItemCategory = EInv_ItemCategory::None;
+
 	// Layout
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	int32 Rows = 5;
