@@ -46,6 +46,7 @@ void UInv_InventoryComponent::TryAddItem(UInv_ItemComponent* ItemComponent)
 
 	if (Result.Item.IsValid() && Result.bStackable)
 	{
+		OnStackChange.Broadcast(Result);
 		Server_AddStacksToItem(ItemComponent, Result.TotalRoomToFill, Result.Remainder);
 	}
 	else if (Result.TotalRoomToFill > 0)
@@ -63,8 +64,23 @@ void UInv_InventoryComponent::Server_AddNewItem_Implementation(UInv_ItemComponen
 	{
 		OnItemAdded.Broadcast(NewItem);
 	}
-	
+
 	ItemComponent->PickedUp();
+	
+	// const FGameplayTag& ItemType = IsValid(ItemComponent) ? ItemComponent->GetItemManifest().GetItemType() : FGameplayTag::EmptyTag;
+	// UInv_InventoryItem* Item = InventoryList.FindFirstItemByType(ItemType);
+	//
+	//
+	//
+	// if (Remainder == 0)
+	// {
+	// 	ItemComponent->PickedUp();
+	// }
+	// else if (FInv_StackableFragment* StackableFragment = ItemComponent->GetItemManifest().GetFragmentOfTypeMutable<FInv_StackableFragment>())
+	// {
+	// 	Item->SetTotalStackCount(Remainder);
+	// 	StackableFragment->SetStackCount(Remainder);
+	// }
 }
 
 void UInv_InventoryComponent::Server_AddStacksToItem_Implementation(UInv_ItemComponent* ItemComponent, int32 StackCount, int32 Remainder)
@@ -84,8 +100,6 @@ void UInv_InventoryComponent::Server_AddStacksToItem_Implementation(UInv_ItemCom
 	{
 		StackableFragment->SetStackCount(Remainder);
 	}
-	
-	
 }
 
 void UInv_InventoryComponent::ToggleInventoryMenu()
