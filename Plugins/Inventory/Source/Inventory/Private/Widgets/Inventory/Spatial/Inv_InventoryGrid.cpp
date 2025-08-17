@@ -247,7 +247,7 @@ void UInv_InventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEve
 
 void UInv_InventoryGrid::PickUp(UInv_InventoryItem* ClickedInventoryItem, const int32 GridIndex)
 {
-	AssignHoverItem(ClickedInventoryItem);
+	AssignHoverItem(ClickedInventoryItem, GridIndex, GridIndex);
 }
 
 void UInv_InventoryGrid::AssignHoverItem(UInv_InventoryItem* InventoryItem)
@@ -273,6 +273,14 @@ void UInv_InventoryGrid::AssignHoverItem(UInv_InventoryItem* InventoryItem)
 	HoverItem->SetIsStackable(InventoryItem->IsStackable());
 
 	GetOwningPlayer()->SetMouseCursorWidget(EMouseCursor::Default, HoverItem);
+}
+
+void UInv_InventoryGrid::AssignHoverItem(UInv_InventoryItem* InventoryItem, const int32 GridIndex, const int32 PreviousGridIndex)
+{
+	AssignHoverItem(InventoryItem);
+	HoverItem -> SetPreviousIndex(PreviousGridIndex);
+	HoverItem->UpdateStackCount(InventoryItem->IsStackable() ? GridSlots[GridIndex]->GetStackCount() : 0);
+	
 }
 
 
