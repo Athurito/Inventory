@@ -28,6 +28,22 @@ void UInv_InventoryGrid::NativeOnInitialized()
 	
 }
 
+void UInv_InventoryGrid::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	const FVector2D CanvasPos = UInv_WidgetUtils::GetWidgetPosition(CanvasPanel);
+	const FVector2D MousePosition = UWidgetLayoutLibrary::GetMousePositionOnViewport(GetOwningPlayer());
+	UpdateTileParameters(CanvasPos, MousePosition);
+}
+
+void UInv_InventoryGrid::UpdateTileParameters(const FVector2D& CanvasPosition, const FVector2D& MousePosition)
+{
+	// Calculate the tile quadrant
+	// Handle highlight//Unhighlght
+}
+
+
 FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const UInv_ItemComponent* ItemComponent)
 {
 	return HasRoomForItem(ItemComponent->GetItemManifest());
@@ -306,7 +322,6 @@ void UInv_InventoryGrid::RemoveItemFromGrid(UInv_InventoryItem* InventoryItem, c
 		FoundSlottedItem->RemoveFromParent();
 	}
 }
-
 
 void UInv_InventoryGrid::AddItem(UInv_InventoryItem* Item)
 {
