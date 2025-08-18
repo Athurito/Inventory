@@ -29,7 +29,7 @@ public:
 	int32 GetStackCount() const { return StackCount; };
 	bool IsStackable() const { return bIsStackable; };
 	void SetIsStackable(bool bStacks);
-	int32 GetPreviousIndex() const { return PreviousGridIndex; };
+	int32 GetPreviousGridIndex() const { return PreviousGridIndex; };
 	void SetPreviousIndex(int32 Index) { PreviousGridIndex = Index; };
 	FIntPoint GetGridDimensions() const { return GridDimensions; };
 	void SetGridDimensions(const FIntPoint& Dimensions) { GridDimensions = Dimensions; };
