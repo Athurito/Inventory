@@ -6,6 +6,7 @@
 #include "CommonUserWidget.h"
 #include "Inv_GridSlot.generated.h"
 
+class UInv_ItemPopUp;
 class UInv_InventoryItem;
 class UImage;
 
@@ -51,6 +52,9 @@ public:
 	void SetAvailable(bool bIsAvailable) { bAvailable = bIsAvailable; };
 	bool IsAvailable() const { return bAvailable; };
 
+	void SetItemPopUp(UInv_ItemPopUp* PopUp);
+	UInv_ItemPopUp* GetItemPopUp() const;
+
 	void SetOccupiedTexture();
 	void SetUnoccupiedTexture();
 	void SetSelectedTexture();
@@ -61,16 +65,16 @@ public:
 	FGridSlotEvent GridSlotUnhovered;
 
 private:
-
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UImage> Image_GridSlot;
-
 	int32 TileIndex{INDEX_NONE};
 	int32 StackCount{0};
 	int32 UpperLeftIndex{INDEX_NONE};
-	TWeakObjectPtr<UInv_InventoryItem> InventoryItem;
 	bool bAvailable{true};
 
+	TWeakObjectPtr<UInv_InventoryItem> InventoryItem;
+	TWeakObjectPtr<UInv_ItemPopUp> ItemPopUp;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> Image_GridSlot;
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	FSlateBrush Brush_Unoccupied;
 	UPROPERTY(EditAnywhere, Category = "Inventory")
@@ -81,4 +85,7 @@ private:
 	FSlateBrush Brush_GrayedOut;
 
 	EInv_GridSlotState GridSlotState;
+
+	UFUNCTION()
+	void OnItemPopUpDestruct(UUserWidget* Menu);
 };
