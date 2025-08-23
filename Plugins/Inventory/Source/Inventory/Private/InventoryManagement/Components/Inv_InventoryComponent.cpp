@@ -137,6 +137,22 @@ void UInv_InventoryComponent::SpawnDroppedItem(UInv_InventoryItem* Item, int32 S
 }
 
 
+void UInv_InventoryComponent::Server_ConsumeItem_Implementation(UInv_InventoryItem* Item)
+{
+	const int32 NewStackCount = Item->GetTotalStackCount() - 1;
+
+	if (NewStackCount <= 0)
+	{
+		InventoryList.RemoveEntry(Item);
+	}
+	else
+	{
+		Item->SetTotalStackCount(NewStackCount);
+	}
+
+	//TODO: Get the Consumable Fragment and call Consume()
+}
+
 void UInv_InventoryComponent::ToggleInventoryMenu()
 {
 	if (bIsInventoryMenuOpen)

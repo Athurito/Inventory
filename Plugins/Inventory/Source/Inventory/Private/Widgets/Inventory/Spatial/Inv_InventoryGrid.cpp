@@ -994,7 +994,7 @@ void UInv_InventoryGrid::OnPopUpConsume(int32 Index)
 	const int32 NewStackCount =  UpperLeftGridSlot->GetStackCount() - 1;
 	SlottedItems.FindChecked(UpperLeftIndex)->UpdateStackCount(NewStackCount);
 
-	//TODO tell server consume
+	InventoryComponent->Server_ConsumeItem(RightClickedItem);
 
 	if (NewStackCount <= 0)
 	{

@@ -34,6 +34,9 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Server_DropItem(UInv_InventoryItem* Item,  int32 StackCount);
 
+	UFUNCTION(Server, Reliable)
+	void Server_ConsumeItem(UInv_InventoryItem* Item);
+
 	void ToggleInventoryMenu();
 	void AddRepSubObject(UObject* SubObject);
 	void SpawnDroppedItem(UInv_InventoryItem* Item, int32 StackCount);
