@@ -25,6 +25,8 @@ public:
 
 	void SetTotalStackCount(int32 Count) { TotalStackCount = Count; }
 	int32 GetTotalStackCount() const { return TotalStackCount; }
+
+	bool IsConsumable() const;
 	
 private:
 
