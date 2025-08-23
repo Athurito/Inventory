@@ -126,6 +126,14 @@ void UInv_InventoryComponent::SpawnDroppedItem(UInv_InventoryItem* Item, int32 S
 
 	SpawnLocation.Z -= RelativeSpawnElevation;
 	const FRotator SpawnRotation = OwningPawn->GetActorRotation();
+
+	FInv_ItemManifest ItemManifest = Item->GetItemManifestMutable();
+	if (FInv_StackableFragment* StackableFragment = ItemManifest.GetFragmentOfTypeMutable<FInv_StackableFragment>())
+	{
+		StackableFragment->SetStackCount(StackCount);
+	}
+	
+	ItemManifest.SpawnPickupActor(this, SpawnLocation, SpawnRotation);
 }
 
 
