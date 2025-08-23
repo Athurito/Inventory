@@ -37,6 +37,7 @@ public:
 	void ShowCursor();
 	void HideCursor();
 	void SetOwningCanvas(UCanvasPanel* OwningCanvas);
+	void DropItem();
 	
 	UFUNCTION()
 	void AddItem(UInv_InventoryItem* Item);
@@ -114,7 +115,7 @@ private:
 	void FillInStack(const int32 FillAmount, const int32 Remainder, const int32 Index);
 
 	void CreateItemPopUp(const int32 GridIndex);
-	void DropItem();
+	
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	TSubclassOf<UInv_ItemPopUp> ItemPopUpClass;
