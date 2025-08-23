@@ -570,6 +570,11 @@ void UInv_InventoryGrid::DropItem()
 	ShowCursor();
 }
 
+bool UInv_InventoryGrid::HasHoverItem() const
+{
+	return IsValid(HoverItem);
+}
+
 
 void UInv_InventoryGrid::PickUp(UInv_InventoryItem* ClickedInventoryItem, const int32 GridIndex)
 {
