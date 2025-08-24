@@ -5,6 +5,7 @@
 
 #include "Inv_ItemFragment.generated.h"
 
+class UInv_CompositeBase;
 class APlayerController;
 
 USTRUCT(BlueprintType)
@@ -27,6 +28,23 @@ private:
 	
 	UPROPERTY(EditAnywhere, Category = "Inventory", meta = (Categories="FragmentTags"))
 	FGameplayTag FragmentTag = FGameplayTag::EmptyTag;
+};
+
+/*
+ *
+ * Item Fragmet specifically for assimilation into a widget
+ */
+
+USTRUCT(BlueprintType)
+struct FInv_InventoryItemFragment : public FInv_ItemFragment
+{
+	GENERATED_BODY()
+public:
+	virtual void Assimilate(UInv_CompositeBase* Composite) const;
+
+protected:
+	bool MatchesWidgetTag(const UInv_CompositeBase* Composite) const;
+	
 };
 
 USTRUCT(BlueprintType)
