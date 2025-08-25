@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Inv_Leaf.h"
-#include "UInv_Leaf_Image.generated.h"
+#include "Inv_Leaf_Image.generated.h"
 
 class USizeBox;
 class UImage;
@@ -12,7 +12,7 @@ class UImage;
  * 
  */
 UCLASS()
-class INVENTORY_API UUInv_Leaf_Image : public UInv_Leaf
+class INVENTORY_API UInv_Leaf_Image : public UInv_Leaf
 {
 	GENERATED_BODY()
 
