@@ -127,8 +127,6 @@ void FInv_ManaPotionFragment::OnConsume(APlayerController* PC)
 }
 
 
-
-
 void FInv_StrengthModifier::OnEquip(APlayerController* PC)
 {
 	GEngine->AddOnScreenDebugMessage(
@@ -178,5 +176,15 @@ void FInv_EquipmentFragment::Assimilate(UInv_CompositeBase* Composite) const
 	{
 		const auto& ModRef = Modifier.Get();
 		ModRef.Assimilate(Composite);
+	}
+}
+
+void FInv_EquipmentFragment::Manifest()
+{
+	FInv_InventoryItemFragment::Manifest();
+	for (auto& Modifier : EquipModifiers)
+	{
+		auto& ModRef = Modifier.GetMutable();
+		ModRef.Manifest();
 	}
 }
