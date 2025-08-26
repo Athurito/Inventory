@@ -7,6 +7,7 @@
 #include "Widgets/Inventory/InventoryBase/Inv_InventoryBase.h"
 #include "Inv_SpatialInventory.generated.h"
 
+class UInv_HoverItem;
 struct FGameplayTag;
 class UInv_EquippedGridSlot;
 class UInv_ItemDescription;
@@ -32,6 +33,7 @@ public:
 	virtual void OnItemHovered(UInv_InventoryItem* Item) override;
 	virtual void OnItemUnHovered() override;
 	virtual bool HasHoverItem() const override;
+	virtual UInv_HoverItem* GetHoverItem() const override;
 
 private:
 

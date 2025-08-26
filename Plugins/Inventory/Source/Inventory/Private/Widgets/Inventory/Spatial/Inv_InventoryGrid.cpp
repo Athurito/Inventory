@@ -577,6 +577,11 @@ bool UInv_InventoryGrid::HasHoverItem() const
 	return IsValid(HoverItem);
 }
 
+UInv_HoverItem* UInv_InventoryGrid::GetHoverItem() const
+{
+	return HoverItem;
+}
+
 
 void UInv_InventoryGrid::PickUp(UInv_InventoryItem* ClickedInventoryItem, const int32 GridIndex)
 {
