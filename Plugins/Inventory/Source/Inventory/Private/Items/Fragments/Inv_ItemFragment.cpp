@@ -92,7 +92,6 @@ void FInv_ConsumableFragment::Assimilate(UInv_CompositeBase* Composite) const
 void FInv_ConsumableFragment::Manifest()
 {
 	FInv_InventoryItemFragment::Manifest();
-	FInv_InventoryItemFragment::Manifest();
 	for (auto& Modifier : ConsumeModifiers)
 	{
 		auto& ModRef = Modifier.GetMutable();
