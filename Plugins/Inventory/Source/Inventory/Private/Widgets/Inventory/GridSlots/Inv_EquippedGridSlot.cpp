@@ -3,7 +3,10 @@
 
 #include "Widgets/Inventory/GridSlots/Inv_EquippedGridSlot.h"
 
+#include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/Image.h"
+#include "Components/Overlay.h"
+#include "Components/OverlaySlot.h"
 #include "InventoryManagement/Utils/Inv_InventoryStatics.h"
 #include "Items/Inv_InventoryItem.h"
 #include "Items/Fragments/Inv_FragmentTags.h"
@@ -74,7 +77,28 @@ UInv_EquippedSlottedItem* UInv_EquippedGridSlot::OnItemEquipped(UInv_InventoryIt
 	SetInventoryItem(Item);
 	
 	// Set the Image Brush on the Equipped Slotted Item
+	const FInv_ImageFragment* ImageFragment = GetFragment<FInv_ImageFragment>(Item, FragmentTags::ImageFragment);
+	if (!ImageFragment) return nullptr;
+
+	FSlateBrush Brush;
+	Brush.SetResourceObject(ImageFragment->GetIcon());
+	Brush.DrawAs = ESlateBrushDrawType::Image;
+	Brush.ImageSize = DrawSize;
+	
+	EquippedSlottedItem->SetImageBrush(Brush);
+	
 	// Add the Slotted Item as a child to this widget's Overlay
+	Overlay_Root->AddChildToOverlay(EquippedSlottedItem);
+	FGeometry OverlayGeometry = Overlay_Root->GetCachedGeometry();
+	auto OverlayPos = OverlayGeometry.Position;
+	auto OverlaySize = OverlayGeometry.Size;
+
+	const float LeftPadding = OverlaySize.X / 2.f - DrawSize.X / 2.f;
+	const float TopPadding = OverlaySize.Y / 2.f - DrawSize.Y / 2.f;
+
+	UOverlaySlot* OverlaySlot = UWidgetLayoutLibrary::SlotAsOverlaySlot(EquippedSlottedItem);
+	OverlaySlot->SetPadding(FMargin(LeftPadding, TopPadding));
+	
 	// Return the Equipped Slotted Item widget
-	return nullptr;
+	return EquippedSlottedItem;
 }
