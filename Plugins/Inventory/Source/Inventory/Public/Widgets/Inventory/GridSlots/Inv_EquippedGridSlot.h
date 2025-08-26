@@ -10,6 +10,7 @@
 /**
  * 
  */
+class UImage;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FEquippedGridSlotClicked, UInv_EquippedGridSlot*, GridSlot, const FGameplayTag&, EquipmentTypeTag);
 UCLASS()
@@ -26,4 +27,7 @@ public:
 private:
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	FGameplayTag EquipmentTypeTag;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> Image_GrayedOutIcon;
 };
