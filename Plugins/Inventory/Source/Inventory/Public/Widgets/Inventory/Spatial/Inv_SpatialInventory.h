@@ -100,6 +100,9 @@ private:
 	bool CanEquipHoverItem(UInv_EquippedGridSlot* EquippedGridSlot, const FGameplayTag& EquipmentTypeTag) const;
 	UInv_EquippedGridSlot* FindSlotWithEquippedItem(UInv_InventoryItem* EquippedItem) const;
 
+	void ClearSlotOfItem(UInv_EquippedGridSlot* EquippedGridSlot);
+	void RemoveEquippedSlottedItem(UInv_EquippedSlottedItem* EquippedSlottedItem);
+
 	
 	TWeakObjectPtr<UInv_InventoryGrid> ActiveGrid;
 };

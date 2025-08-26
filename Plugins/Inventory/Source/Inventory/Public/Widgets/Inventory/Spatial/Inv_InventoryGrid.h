@@ -42,6 +42,7 @@ public:
 	UInv_HoverItem* GetHoverItem() const;
 	float GetTileSize() const { return TileSize; }
 	void ClearHoverItem();
+	void AssignHoverItem(UInv_InventoryItem* InventoryItem);
 	
 	UFUNCTION()
 	void AddItem(UInv_InventoryItem* Item);
@@ -90,7 +91,6 @@ private:
 	bool IsRightClick(const FPointerEvent& MouseEvent) const;
 	bool IsLeftClick(const FPointerEvent& MouseEvent) const;
 	void PickUp(UInv_InventoryItem* ClickedInventoryItem, const int32 GridIndex);
-	void AssignHoverItem(UInv_InventoryItem* InventoryItem);
 	void AssignHoverItem(UInv_InventoryItem* InventoryItem, const int32 GridIndex, const int32 PreviousGridIndex);
 	void RemoveItemFromGrid(UInv_InventoryItem* InventoryItem, const int32 GridIndex);
 	void UpdateTileParameters(const FVector2D& CanvasPosition, const FVector2D& MousePosition);
