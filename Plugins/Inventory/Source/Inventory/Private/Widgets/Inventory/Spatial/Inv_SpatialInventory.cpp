@@ -200,11 +200,11 @@ void UInv_SpatialInventory::BroadcastSlotClickedDelegates(UInv_InventoryItem* It
 	check(IsValid(InventoryComponent));
 	InventoryComponent->Server_EquipSlotClicked(ItemToEquip, ItemToUnequip);
 
-	// if (GetOwningPlayer()->GetNetMode() != NM_DedicatedServer)
-	// {
-	// 	InventoryComponent->OnItemEquipped.Broadcast(ItemToEquip);
-	// 	InventoryComponent->OnItemUnequipped.Broadcast(ItemToUnequip);
-	// }
+	if (GetOwningPlayer()->GetNetMode() != NM_DedicatedServer)
+	{
+		InventoryComponent->OnItemEquipped.Broadcast(ItemToEquip);
+		InventoryComponent->OnItemUnequipped.Broadcast(ItemToUnequip);
+	}
 }
 
 FInv_SlotAvailabilityResult UInv_SpatialInventory::HasRoomForItem(UInv_ItemComponent* ItemComponent) const
