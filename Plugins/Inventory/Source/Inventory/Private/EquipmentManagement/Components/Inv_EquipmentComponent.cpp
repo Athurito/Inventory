@@ -106,7 +106,16 @@ void UInv_EquipmentComponent::RemoveEquippedActor(const FGameplayTag& EquipmentT
 void UInv_EquipmentComponent::OnItemEquipped(UInv_InventoryItem* EquippedItem)
 {
 	if (!IsValid(EquippedItem)) return;
-	if (!OwningPlayerController->HasAuthority()) return;
+
+	if (bIsProxy)
+	{
+		if (!OwningPlayerController->IsLocalController()) return;
+	}
+	else
+	{
+		if (!OwningPlayerController->HasAuthority()) return;
+	}
+	
 
 	FInv_ItemManifest& ItemManifest = EquippedItem->GetItemManifestMutable();
 	FInv_EquipmentFragment* EquipmentFragment = ItemManifest.GetFragmentOfTypeMutable<FInv_EquipmentFragment>();
@@ -120,13 +129,23 @@ void UInv_EquipmentComponent::OnItemEquipped(UInv_InventoryItem* EquippedItem)
 	if (!OwningSkeletalMesh.IsValid()) return;
 	AInv_EquipActor* SpawnedEquipActor = SpawnEquippedActor(EquipmentFragment, ItemManifest, OwningSkeletalMesh.Get());
 
+	if (bIsProxy) SpawnedEquipActor->SetReplicates(false);
+	
 	EquippedActors.Add(SpawnedEquipActor);
 }
 
 void UInv_EquipmentComponent::OnItemUnequipped(UInv_InventoryItem* UnequippedItem)
 {
 	if (!IsValid(UnequippedItem)) return;
-	if (!OwningPlayerController->HasAuthority()) return;
+
+	if (bIsProxy)
+	{
+		if (!OwningPlayerController->IsLocalController()) return;
+	}
+	else
+	{
+		if (!OwningPlayerController->HasAuthority()) return;
+	}
 
 	FInv_ItemManifest& ItemManifest = UnequippedItem->GetItemManifestMutable();
 	FInv_EquipmentFragment* EquipmentFragment = ItemManifest.GetFragmentOfTypeMutable<FInv_EquipmentFragment>();
