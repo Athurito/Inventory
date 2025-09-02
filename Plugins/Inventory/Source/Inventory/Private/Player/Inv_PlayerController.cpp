@@ -58,6 +58,16 @@ void AInv_PlayerController::ToggleInventory()
 	if (!InventoryComponent.IsValid()) return;
 
 	InventoryComponent->ToggleInventoryMenu();
+
+	if (InventoryComponent->IsMenuOpen())
+	{
+		HudWidget->SetVisibility(ESlateVisibility::Hidden);
+	}
+	else
+	{
+		HudWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+
+	}
 }
 
 void AInv_PlayerController::PrimaryInteract()
