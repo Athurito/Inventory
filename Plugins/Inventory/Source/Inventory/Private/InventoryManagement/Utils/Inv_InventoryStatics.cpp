@@ -6,17 +6,35 @@
 #include "InventoryManagement/Components/Inv_InventoryComponent.h"
 #include "Items/Components/Inv_ItemComponent.h"
 #include "Widgets/Inventory/InventoryBase/Inv_InventoryBase.h"
+#include "GameFramework/Pawn.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
+#include "Widgets/Inventory/Containers/Inv_ContainerWindow.h"
+#include "Widgets/Inventory/Spatial/Inv_MinimalInventoryGrid.h"
+#include "Widgets/Inventory/HoverItem/Inv_HoverItem.h"
 
 UInv_InventoryComponent* UInv_InventoryStatics::GetInventoryComponent(const APlayerController* PlayerController)
 {
+	// Defensively resolve the InventoryComponent from the possessed pawn first (most setups attach it to the Character),
+	// then fall back to the controller if needed. This avoids calling FindComponentByClass on an invalid actor.
 	if (!IsValid(PlayerController))
 	{
 		return nullptr;
 	}
 
-	UInv_InventoryComponent* InventoryComponent = PlayerController->FindComponentByClass<UInv_InventoryComponent>();
+	// Try the pawn
+	if (const APawn* Pawn = PlayerController->GetPawn())
+	{
+		if (IsValid(Pawn))
+		{
+			if (UInv_InventoryComponent* InvOnPawn = Pawn->FindComponentByClass<UInv_InventoryComponent>())
+			{
+				return InvOnPawn;
+			}
+		}
+	}
 
-	return InventoryComponent;
+	// Fallback: try the controller itself
+	return PlayerController->FindComponentByClass<UInv_InventoryComponent>();
 }
 
 EInv_ItemCategory UInv_InventoryStatics::GetItemCategoryFromItemComponent(const UInv_ItemComponent* ItemComponent)
@@ -55,19 +73,87 @@ void UInv_InventoryStatics::ItemUnhovered(APlayerController* PlayerController)
 
 UInv_HoverItem* UInv_InventoryStatics::GetHoverItem(APlayerController* PC)
 {
-	UInv_InventoryComponent* IC = GetInventoryComponent(PC);
-	if (!IsValid(IC)) return nullptr;
+	// First, try the player's current full inventory widget
+	if (IsValid(PC))
+	{
+		if (UInv_InventoryComponent* IC = GetInventoryComponent(PC))
+		{
+			if (UInv_InventoryBase* InventoryBase = IC->GetInventoryMenu())
+			{
+				if (IsValid(InventoryBase))
+				{
+					if (UInv_HoverItem* Hover = InventoryBase->GetHoverItem())
+					{
+						if (IsValid(Hover)) return Hover;
+					}
+				}
+			}
+		}
+	}
 
-	UInv_InventoryBase* InventoryBase = IC->GetInventoryMenu();
-	if (!IsValid(InventoryBase)) return nullptr;
-
-	return InventoryBase->GetHoverItem();
+	// Fallback: If a container window is open, check its grids for a hover item
+	if (IsValid(PC))
+	{
+		TArray<UUserWidget*> FoundWidgets;
+		UWidgetBlueprintLibrary::GetAllWidgetsOfClass(PC, FoundWidgets, UInv_ContainerWindow::StaticClass(), false);
+		for (UUserWidget* Widget : FoundWidgets)
+		{
+			UInv_ContainerWindow* CW = Cast<UInv_ContainerWindow>(Widget);
+			if (!IsValid(CW)) continue;
+			if (UInv_MinimalInventoryGrid* PlayerGrid = CW->GetPlayerGrid())
+			{
+				if (PlayerGrid->HasHoverItem())
+				{
+					if (UInv_HoverItem* Hover = PlayerGrid->GetHoverItem())
+					{
+						if (IsValid(Hover)) return Hover;
+					}
+				}
+			}
+			if (UInv_MinimalInventoryGrid* ContainerGrid = CW->GetContainerGrid())
+			{
+				if (ContainerGrid->HasHoverItem())
+				{
+					if (UInv_HoverItem* Hover = ContainerGrid->GetHoverItem())
+					{
+						if (IsValid(Hover)) return Hover;
+					}
+				}
+			}
+		}
+	}
+	return nullptr;
 }
 
 UInv_InventoryBase* UInv_InventoryStatics::GetInventoryWidget(APlayerController* PC)
 {
-	UInv_InventoryComponent* IC = GetInventoryComponent(PC);
-	if (!IsValid(IC)) return nullptr;
+	// Original: try via the player's inventory component
+	if (IsValid(PC))
+	{
+		if (UInv_InventoryComponent* IC = GetInventoryComponent(PC))
+		{
+			if (UInv_InventoryBase* InventoryBase = IC->GetInventoryMenu())
+			{
+				if (IsValid(InventoryBase)) return InventoryBase;
+			}
+		}
+	}
 
-	return IC->GetInventoryMenu();
+	// Fallback: inventory widget might have been reparented into the container window; search in viewport
+	if (IsValid(PC))
+	{
+		TArray<UUserWidget*> FoundInventoryWidgets;
+		UWidgetBlueprintLibrary::GetAllWidgetsOfClass(PC, FoundInventoryWidgets, UInv_InventoryBase::StaticClass(), false);
+		for (UUserWidget* Widget : FoundInventoryWidgets)
+		{
+			UInv_InventoryBase* InvBase = Cast<UInv_InventoryBase>(Widget);
+			if (!IsValid(InvBase)) continue;
+			// Prefer widgets owned by this player controller
+			if (InvBase->GetOwningPlayer() == PC)
+			{
+				return InvBase;
+			}
+		}
+	}
+	return nullptr;
 }

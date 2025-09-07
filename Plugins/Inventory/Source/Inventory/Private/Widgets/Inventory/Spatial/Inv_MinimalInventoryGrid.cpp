@@ -297,23 +297,14 @@ bool UInv_MinimalInventoryGrid::IsInGridBounds(int32 Index) const
 
 bool UInv_MinimalInventoryGrid::HasHoverItem() const
 {
-	if (IsValid(HoverItem)) return true;
-	// Fallback: query global hover from the currently open inventory widget (e.g., reparented full inventory)
-	if (APlayerController* PC = GetOwningPlayer())
-	{
-		return IsValid(UInv_InventoryStatics::GetHoverItem(PC));
-	}
-	return false;
+	// Only report the grid's own local hover item state to avoid recursion with global statics lookup
+	return IsValid(HoverItem);
 }
 
 UInv_HoverItem* UInv_MinimalInventoryGrid::GetHoverItem() const
 {
-	if (IsValid(HoverItem)) return HoverItem;
-	if (APlayerController* PC = GetOwningPlayer())
-	{
-		return UInv_InventoryStatics::GetHoverItem(PC);
-	}
-	return nullptr;
+	// Only return the grid's local hover item to avoid recursion
+	return IsValid(HoverItem) ? HoverItem : nullptr;
 }
 
 void UInv_MinimalInventoryGrid::AssignHoverItem(UInv_InventoryItem* InventoryItem)
