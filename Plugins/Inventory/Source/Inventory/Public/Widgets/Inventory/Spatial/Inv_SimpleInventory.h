@@ -12,6 +12,10 @@ class UWidgetSwitcher;
 class UInv_ItemComponent;
 class UInv_HoverItem;
 class UInv_InventoryItem;
+class UInv_EquippedGridSlot;
+class UInv_EquippedSlottedItem;
+class UInv_ItemDescription;
+struct FGameplayTag;
 
 UCLASS()
 class INVENTORY_API UInv_SimpleInventory : public UInv_InventoryBase
@@ -20,16 +24,21 @@ class INVENTORY_API UInv_SimpleInventory : public UInv_InventoryBase
 public:
 	virtual void NativeOnInitialized() override;
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 	// UInv_InventoryBase overrides
 	virtual FInv_SlotAvailabilityResult HasRoomForItem(UInv_ItemComponent* ItemComponent) const override;
-	virtual void OnItemHovered(UInv_InventoryItem* /*Item*/) override {}
-	virtual void OnItemUnHovered() override {}
+	virtual void OnItemHovered(UInv_InventoryItem* Item) override;
+	virtual void OnItemUnHovered() override;
 	virtual bool HasHoverItem() const override;
 	virtual UInv_HoverItem* GetHoverItem() const override;
 	virtual float GetTileSize() const override;
 
 private:
+	// Equipped slots collected from the blueprint tree
+	UPROPERTY()
+	TArray<TObjectPtr<UInv_EquippedGridSlot>> EquippedGridSlots;
+
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCanvasPanel> CanvasPanel;
 
@@ -54,6 +63,34 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> Button_Craftables;
 
+	// Description widgets
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TSubclassOf<UInv_ItemDescription> ItemDescriptionClass;
+
+	UPROPERTY()
+	TObjectPtr<UInv_ItemDescription> ItemDescription;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TSubclassOf<UInv_ItemDescription> EquippedItemDescriptionClass;
+
+	UPROPERTY()
+	TObjectPtr<UInv_ItemDescription> EquippedItemDescription;
+
+	FTimerHandle DescriptionTimer;
+	FTimerHandle EquippedDescriptionTimer;
+
+	UFUNCTION()
+	void ShowEquippedItemDescription(UInv_InventoryItem* Item);
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float DescriptionTimerDelay = 0.5f;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float EquippedDescriptionTimerDelay = 0.5f;
+
+	UInv_ItemDescription* GetItemDescription();
+	UInv_ItemDescription* GetEquippedItemDescription();
+
 	UFUNCTION()
 	void ShowEquipables();
 
@@ -63,8 +100,22 @@ private:
 	UFUNCTION()
 	void ShowCraftables();
 
+	UFUNCTION()
+	void EquippedGridSlotClicked(UInv_EquippedGridSlot* EquippedGridSlot, const FGameplayTag& EquipmentTypeTag);
+
+	UFUNCTION()
+	void EquippedSlottedItemClicked(UInv_EquippedSlottedItem* EquippedSlottedItem);
+
 	void DisableButton(UButton* Button);
 	void SetActiveGrid(UInv_MinimalInventoryGrid* Grid, UButton* Button);
+	void SetItemDescriptionSizeAndPosition(UInv_ItemDescription* Description, UCanvasPanel* Canvas) const;
+	void SetEquippedItemDescriptionSizeAndPosition(UInv_ItemDescription* Description, UInv_ItemDescription* EquippedDescription, UCanvasPanel* Canvas) const;
+	bool CanEquipHoverItem(UInv_EquippedGridSlot* EquippedGridSlot, const FGameplayTag& EquipmentTypeTag) const;
+	UInv_EquippedGridSlot* FindSlotWithEquippedItem(UInv_InventoryItem* EquippedItem) const;
+	void ClearSlotOfItem(UInv_EquippedGridSlot* EquippedGridSlot);
+	void RemoveEquippedSlottedItem(UInv_EquippedSlottedItem* EquippedSlottedItem);
+	void MakeEquippedSlottedItem(UInv_EquippedSlottedItem* EquippedSlottedItem, UInv_EquippedGridSlot* EquippedGridSlot, UInv_InventoryItem* ItemToEquip);
+	void BroadcastSlotClickedDelegates(UInv_InventoryItem* ItemToEquip, UInv_InventoryItem* ItemToUnequip) const;
 
 	TWeakObjectPtr<UInv_MinimalInventoryGrid> ActiveGrid;
 };
