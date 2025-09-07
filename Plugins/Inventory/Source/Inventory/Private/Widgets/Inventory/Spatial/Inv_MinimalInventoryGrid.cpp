@@ -113,6 +113,9 @@ bool UInv_MinimalInventoryGrid::CursorExitedCanvas(const FVector2D& BoundaryPos,
 	if (!bMouseWithinCanvas && bLastMouseWithinCanvas)
 	{
 		UnHighlightIndex(LastHighlightedIndex);
+		// Reset hover tracking so that re-entering highlights immediately even if it's the same index as before
+		HoveredIndex = INDEX_NONE;
+		LastHighlightedIndex = INDEX_NONE;
 		return true;
 	}
 	return false;
