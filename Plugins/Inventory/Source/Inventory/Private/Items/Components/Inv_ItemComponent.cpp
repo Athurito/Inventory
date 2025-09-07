@@ -4,6 +4,7 @@
 #include "Items/Components/Inv_ItemComponent.h"
 
 #include "Net/UnrealNetwork.h"
+#include "Items/Manifest/Inv_ItemManifestAsset.h"
 
 
 UInv_ItemComponent::UInv_ItemComponent()
@@ -16,7 +17,26 @@ UInv_ItemComponent::UInv_ItemComponent()
 void UInv_ItemComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(ThisClass, ItemManifest)
+	DOREPLIFETIME(ThisClass, ItemManifest);
+}
+
+void UInv_ItemComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// If a ManifestAsset is assigned, prefer it over per-actor fragments to simplify authoring
+	#if WITH_EDITORONLY_DATA
+	// No special handling needed in editor-only
+	#endif
+
+	if (GetOwner() && GetOwner()->HasAuthority())
+	{
+		if (ManifestAsset)
+		{
+			// Copy the manifest from the asset so it replicates to clients via ItemManifest
+			ItemManifest = ManifestAsset->ItemManifest;
+		}
+	}
 }
 
 void UInv_ItemComponent::InitItemManifest(FInv_ItemManifest CopyOfManifest)
