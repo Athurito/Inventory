@@ -14,6 +14,7 @@
 class UInv_InventoryItem;
 class UImage;
 class UTextBlock;
+class UInv_InventoryComponent;
 
 UCLASS()
 class INVENTORY_API UInv_HoverItem : public UCommonUserWidget
@@ -35,8 +36,12 @@ public:
 	void SetGridDimensions(const FIntPoint& Dimensions) { GridDimensions = Dimensions; };
 	void SetInventoryItem(UInv_InventoryItem* Item);
 	UInv_InventoryItem* GetInventoryItem() const;
+
+	// Track the inventory component the hover item originated from (for cross-inventory transfers)
+	void SetSourceInventory(TWeakObjectPtr<class UInv_InventoryComponent> Source) { SourceInventory = Source; }
+	UInv_InventoryComponent* GetSourceInventory() const { return SourceInventory.Get(); }
 	
-	
+		
 
 private:
 
@@ -52,5 +57,8 @@ private:
 	TWeakObjectPtr<UInv_InventoryItem> InventoryItem;
 	bool bIsStackable{false};
 	int32 StackCount{0};
+
+	// Weak reference to the source inventory this hover item came from
+	TWeakObjectPtr<UInv_InventoryComponent> SourceInventory;
 	
 };

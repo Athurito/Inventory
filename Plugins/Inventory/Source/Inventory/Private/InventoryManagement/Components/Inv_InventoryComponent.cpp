@@ -21,7 +21,7 @@ UInv_InventoryComponent::UInv_InventoryComponent() : InventoryList(this)
 void UInv_InventoryComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(ThisClass, InventoryList)
+	DOREPLIFETIME(ThisClass, InventoryList);
 }
 
 void UInv_InventoryComponent::BeginPlay()
@@ -149,6 +149,65 @@ void UInv_InventoryComponent::Server_ConsumeItem_Implementation(UInv_InventoryIt
 	}
 }
 
+void UInv_InventoryComponent::Server_TransferItemToInventory_Implementation(UInv_InventoryComponent* TargetInventory, UInv_InventoryItem* Item, int32 StackCount)
+{
+	if (!IsValid(TargetInventory) || !IsValid(Item)) return;
+	if (TargetInventory == this) return;
+
+	// Clamp amount
+	const bool bIsStackable = Item->IsStackable();
+	int32 TransferAmount = FMath::Max(1, StackCount);
+	if (bIsStackable)
+	{
+		TransferAmount = FMath::Clamp(TransferAmount, 1, Item->GetTotalStackCount());
+	}
+	else
+	{
+		TransferAmount = 1; // non-stackable items move one at a time
+	}
+
+	// Try merge into an existing stack on target
+	const FGameplayTag& ItemType = Item->GetItemManifest().GetItemType();
+	UInv_InventoryItem* TargetExisting = TargetInventory->InventoryList.FindFirstItemByType(ItemType);
+	bool bMerged = false;
+	if (IsValid(TargetExisting) && bIsStackable)
+	{
+		TargetExisting->SetTotalStackCount(TargetExisting->GetTotalStackCount() + TransferAmount);
+		bMerged = true;
+	}
+
+	if (!bMerged)
+	{
+		// Create a new item instance for the target owner with the transfer amount
+		FInv_ItemManifest ManifestCopy = Item->GetItemManifest();
+		if (FInv_StackableFragment* Stackable = ManifestCopy.GetFragmentOfTypeMutable<FInv_StackableFragment>())
+		{
+			Stackable->SetStackCount(TransferAmount);
+		}
+		UObject* TargetOuter = TargetInventory->GetOwner();
+		UInv_InventoryItem* NewItem = ManifestCopy.Manifest(TargetOuter);
+		TargetInventory->AddRepSubObject(NewItem);
+		TargetInventory->InventoryList.AddEntry(NewItem);
+
+		// If listen server or standalone, immediately update UI like other server add functions
+		if (TargetInventory->GetOwner()->GetNetMode() == NM_ListenServer || TargetInventory->GetOwner()->GetNetMode() == NM_Standalone)
+		{
+			TargetInventory->OnItemAdded.Broadcast(NewItem);
+		}
+	}
+
+	// Decrease/remove from source
+	const int32 NewCount = Item->GetTotalStackCount() - TransferAmount;
+	if (NewCount <= 0)
+	{
+		InventoryList.RemoveEntry(Item);
+	}
+	else
+	{
+		Item->SetTotalStackCount(NewCount);
+	}
+}
+
 void UInv_InventoryComponent::Server_EquipSlotClicked_Implementation(UInv_InventoryItem* ItemToEquip,
 	UInv_InventoryItem* ItemToUnequip)
 {
@@ -187,13 +246,25 @@ void UInv_InventoryComponent::AddRepSubObject(UObject* SubObject)
 void UInv_InventoryComponent::ConstructInventory()
 {
 	OwningController = Cast<APlayerController>(GetOwner());
-	checkf(OwningController.IsValid(), TEXT("Inventory Component should have a Player Controller as Owner"));
 
-	if (!OwningController->IsLocalController())
+	// Only construct the inventory menu if the owner is a local PlayerController
+	if (!OwningController.IsValid() || !OwningController->IsLocalController())
+	{
 		return;
-	
+	}
+
+	if (!IsValid(InventoryMenuClass))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("InventoryMenuClass is not set on %s. Skipping inventory menu construction."), *GetName());
+		return;
+	}
 
 	InventoryMenu = CreateWidget<UInv_InventoryBase>(OwningController.Get(), InventoryMenuClass);
+	if (!IsValid(InventoryMenu))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to create InventoryMenu widget for %s."), *GetName());
+		return;
+	}
 	InventoryMenu->AddToViewport();
 	CloseInventoryMenu();
 }

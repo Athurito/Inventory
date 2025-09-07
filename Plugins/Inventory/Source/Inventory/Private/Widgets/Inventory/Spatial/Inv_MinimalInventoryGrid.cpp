@@ -16,12 +16,36 @@
 #include "Widgets/ItemPopUp/Inv_ItemPopUp.h"
 #include "Widgets/Utils/Inv_WidgetUtils.h"
 
+void UInv_MinimalInventoryGrid::SetInventoryComponent(UInv_InventoryComponent* InInventoryComponent)
+{
+	// Unbind from previous component if any
+	if (InventoryComponent.IsValid())
+	{
+		InventoryComponent->OnItemAdded.RemoveAll(this);
+		InventoryComponent->OnStackChange.RemoveAll(this);
+		InventoryComponent->OnInventoryMenuToggled.RemoveAll(this);
+	}
+
+	InventoryComponent = InInventoryComponent;
+
+	if (InventoryComponent.IsValid())
+	{
+		InventoryComponent->OnItemAdded.AddDynamic(this, &ThisClass::AddItem);
+		InventoryComponent->OnStackChange.AddDynamic(this, &ThisClass::AddStacks);
+		InventoryComponent->OnInventoryMenuToggled.AddDynamic(this, &ThisClass::OnInventoryMenuToggled);
+	}
+}
+
 void UInv_MinimalInventoryGrid::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 	ConstructGrid();
 
-	InventoryComponent = UInv_InventoryStatics::GetInventoryComponent(GetOwningPlayer());
+	// If an external inventory component was not assigned, default to the player's inventory
+	if (!InventoryComponent.IsValid())
+	{
+		InventoryComponent = UInv_InventoryStatics::GetInventoryComponent(GetOwningPlayer());
+	}
 	if (InventoryComponent.IsValid())
 	{
 		InventoryComponent->OnItemAdded.AddDynamic(this, &ThisClass::AddItem);
@@ -273,12 +297,23 @@ bool UInv_MinimalInventoryGrid::IsInGridBounds(int32 Index) const
 
 bool UInv_MinimalInventoryGrid::HasHoverItem() const
 {
-	return IsValid(HoverItem);
+	if (IsValid(HoverItem)) return true;
+	// Fallback: query global hover from the currently open inventory widget (e.g., reparented full inventory)
+	if (APlayerController* PC = GetOwningPlayer())
+	{
+		return IsValid(UInv_InventoryStatics::GetHoverItem(PC));
+	}
+	return false;
 }
 
 UInv_HoverItem* UInv_MinimalInventoryGrid::GetHoverItem() const
 {
-	return HoverItem;
+	if (IsValid(HoverItem)) return HoverItem;
+	if (APlayerController* PC = GetOwningPlayer())
+	{
+		return UInv_InventoryStatics::GetHoverItem(PC);
+	}
+	return nullptr;
 }
 
 void UInv_MinimalInventoryGrid::AssignHoverItem(UInv_InventoryItem* InventoryItem)
@@ -300,6 +335,9 @@ void UInv_MinimalInventoryGrid::AssignHoverItem(UInv_InventoryItem* InventoryIte
 	HoverItem->SetGridDimensions(FIntPoint(1,1));
 	HoverItem->SetInventoryItem(InventoryItem);
 	HoverItem->SetIsStackable(InventoryItem->IsStackable());
+
+	// Remember source inventory for cross-inventory auto transfer
+	HoverItem->SetSourceInventory(InventoryComponent);
 
 	GetOwningPlayer()->SetMouseCursorWidget(EMouseCursor::Default, HoverItem);
 }
@@ -342,17 +380,50 @@ void UInv_MinimalInventoryGrid::PutDownOnIndex(int32 Index)
 	ClearHoverItem();
 }
 
+void UInv_MinimalInventoryGrid::TransferHoverItemToInventory(UInv_InventoryComponent* TargetInventory)
+{
+	if (!InventoryComponent.IsValid()) return;
+	if (!IsValid(TargetInventory)) return;
+	UInv_HoverItem* LocalHover = GetHoverItem();
+	if (!IsValid(LocalHover)) return;
+	UInv_InventoryItem* Item = LocalHover->GetInventoryItem();
+	if (!IsValid(Item)) return;
+
+	const int32 Amount = LocalHover->IsStackable() ? LocalHover->GetStackCount() : 1;
+	InventoryComponent->Server_TransferItemToInventory(TargetInventory, Item, Amount);
+	ClearHoverItem();
+	ShowCursor();
+}
+
 void UInv_MinimalInventoryGrid::ClearHoverItem()
 {
-	if (!IsValid(HoverItem)) return;
-	HoverItem->SetInventoryItem(nullptr);
-	HoverItem->SetIsStackable(false);
-	HoverItem->SetPreviousIndex(INDEX_NONE);
-	HoverItem->UpdateStackCount(0);
-	HoverItem->SetImageBrush(FSlateNoResource());
-	HoverItem->RemoveFromParent();
-	HoverItem = nullptr;
-	ShowCursor();
+	// Try to clear our own local hover first
+	if (IsValid(HoverItem))
+	{
+		HoverItem->SetInventoryItem(nullptr);
+		HoverItem->SetIsStackable(false);
+		HoverItem->SetPreviousIndex(INDEX_NONE);
+		HoverItem->UpdateStackCount(0);
+		HoverItem->SetImageBrush(FSlateNoResource());
+		HoverItem->RemoveFromParent();
+		HoverItem = nullptr;
+		ShowCursor();
+		return;
+	}
+	// Otherwise, if the hover item is owned by the full inventory UI, clear that one
+	if (APlayerController* PC = GetOwningPlayer())
+	{
+		if (UInv_HoverItem* ExternalHover = UInv_InventoryStatics::GetHoverItem(PC))
+		{
+			ExternalHover->SetInventoryItem(nullptr);
+			ExternalHover->SetIsStackable(false);
+			ExternalHover->SetPreviousIndex(INDEX_NONE);
+			ExternalHover->UpdateStackCount(0);
+			ExternalHover->SetImageBrush(FSlateNoResource());
+			ExternalHover->RemoveFromParent();
+			ShowCursor();
+		}
+	}
 }
 
 void UInv_MinimalInventoryGrid::ShowCursor()
@@ -462,12 +533,31 @@ void UInv_MinimalInventoryGrid::OnGridSlotClicked(int32 GridIndex, const FPointe
 	if (!IsInGridBounds(HoveredIndex)) return;
 
 	UInv_GridSlot* GridSlotLocal = GridSlots[HoveredIndex];
- if (GridSlotLocal->GetInventoryItem().IsValid())
+	if (GridSlotLocal->GetInventoryItem().IsValid())
 	{
 		OnSlottedItemClicked(HoveredIndex, MouseEvent);
 		return;
 	}
 	// empty slot
+	// If the hover item came from a different inventory, automatically transfer to this grid's inventory
+	if (UInv_HoverItem* LocalHover = GetHoverItem())
+	{
+		UInv_InventoryComponent* SourceInv = LocalHover->GetSourceInventory();
+		UInv_InventoryComponent* TargetInv = InventoryComponent.Get();
+		if (IsValid(SourceInv) && IsValid(TargetInv) && SourceInv != TargetInv)
+		{
+			UInv_InventoryItem* Item = LocalHover->GetInventoryItem();
+			if (IsValid(Item))
+			{
+				const int32 Amount = LocalHover->IsStackable() ? LocalHover->GetStackCount() : 1;
+				SourceInv->Server_TransferItemToInventory(TargetInv, Item, Amount);
+			}
+			ClearHoverItem();
+			ShowCursor();
+			return;
+		}
+	}
+	// Same-inventory put down
 	PutDownOnIndex(HoveredIndex);
 }
 
@@ -561,11 +651,12 @@ void UInv_MinimalInventoryGrid::PutHoverItemBack()
 
 void UInv_MinimalInventoryGrid::DropItem()
 {
-	if (!IsValid(HoverItem)) return;
-	if (!IsValid(HoverItem->GetInventoryItem())) return;
+	UInv_HoverItem* LocalHover = GetHoverItem();
+	if (!IsValid(LocalHover)) return;
+	if (!IsValid(LocalHover->GetInventoryItem())) return;
 	if (InventoryComponent.IsValid())
 	{
-		InventoryComponent->Server_DropItem(HoverItem->GetInventoryItem(), HoverItem->GetStackCount());
+		InventoryComponent->Server_DropItem(LocalHover->GetInventoryItem(), LocalHover->GetStackCount());
 	}
 	ClearHoverItem();
 	ShowCursor();

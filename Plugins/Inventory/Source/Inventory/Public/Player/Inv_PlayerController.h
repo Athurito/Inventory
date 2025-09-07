@@ -40,6 +40,7 @@ private:
 	void PrimaryInteract();
 	void CreateHudWidget();
 	void TraceForItem();
+	void TraceForContainer();
 
 	TWeakObjectPtr<UInv_InventoryComponent> InventoryComponent;
 	
@@ -60,8 +61,39 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
 	TEnumAsByte<ECollisionChannel> ItemTraceChannel;
+
+	// Separate trace channel for containers (to trigger alternate behavior like opening widgets)
+	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
+	TEnumAsByte<ECollisionChannel> ContainerTraceChannel;
 	
-	TWeakObjectPtr<AActor> ThisActor;
-	TWeakObjectPtr<AActor> LastActor;
+	TWeakObjectPtr<AActor> ThisItemActor;
+	TWeakObjectPtr<AActor> LastItemActor;
+
+	TWeakObjectPtr<AActor> ThisContainerActor;
+	TWeakObjectPtr<AActor> LastContainerActor;
+
+protected:
+	// Blueprint hooks so designers can react to container trace events (open/close container UI)
+	UFUNCTION(BlueprintImplementableEvent, Category = "Inventory|Trace")
+	void OnContainerTraceHit(AActor* HitContainerActor);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Inventory|Trace")
+	void OnContainerTraceLost(AActor* PreviousContainerActor);
+
+	// Called when interacting while aiming at a container (different flow than picking up an item)
+	UFUNCTION(BlueprintNativeEvent, Category = "Inventory|Trace")
+	void OnContainerInteract(AActor* ContainerActor);
+
+	// Default UI for container interaction
+	UFUNCTION(BlueprintCallable, Category = "Inventory|UI")
+	void CloseContainerWindow();
+
+protected:
+	// Class to spawn when interacting with a container. Create a UMG BP deriving from UInv_ContainerWindow and assign here.
+	UPROPERTY(EditDefaultsOnly, Category = "Inventory|UI")
+	TSubclassOf<class UInv_ContainerWindow> ContainerWindowClass;
+
+	UPROPERTY()
+	TObjectPtr<class UInv_ContainerWindow> ContainerWindow;
 	
 };

@@ -33,6 +33,18 @@ public:
 	EInv_ItemCategory GetItemCategory() const { return ItemCategory; }
 	FInv_SlotAvailabilityResult HasRoomForItem(const UInv_ItemComponent* ItemComponent);
 
+	// Allow overriding which inventory component this grid listens to (useful for container windows)
+	UFUNCTION(BlueprintCallable, Category="Inventory")
+	void SetInventoryComponent(UInv_InventoryComponent* InInventoryComponent);
+
+	// Moves the current hover item from this grid's inventory to the target inventory
+	UFUNCTION(BlueprintCallable, Category="Inventory")
+	void TransferHoverItemToInventory(UInv_InventoryComponent* TargetInventory);
+
+	// Accessor for Blueprints to get the grid's bound inventory component
+	UFUNCTION(BlueprintCallable, Category="Inventory")
+	UInv_InventoryComponent* GetInventoryComponent() const { return InventoryComponent.Get(); }
+
 	void ShowCursor();
 	void HideCursor();
 	void SetOwningCanvas(UCanvasPanel* OwningCanvas);

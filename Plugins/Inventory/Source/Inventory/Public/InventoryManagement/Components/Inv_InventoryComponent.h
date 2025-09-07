@@ -39,6 +39,10 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Server_ConsumeItem(UInv_InventoryItem* Item);
 
+	// Transfers a specified stack count from this inventory to the target inventory (server-authoritative)
+	UFUNCTION(Server, Reliable)
+	void Server_TransferItemToInventory(UInv_InventoryComponent* TargetInventory, UInv_InventoryItem* Item, int32 StackCount);
+
 	UFUNCTION(Server, Reliable)
 	void Server_EquipSlotClicked(UInv_InventoryItem* ItemToEquip, UInv_InventoryItem* ItemToUnequip);
 
